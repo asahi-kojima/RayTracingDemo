@@ -33,7 +33,7 @@ bool Sphere::hit(const ray& r, float t_min, float t_max, hitRecord& rec) const
 		{
 			rec.t = tmp;
 			rec.p = r.pointAt(tmp);
-			rec.normal = (rec.p - center) ;
+			rec.normal = (rec.p - center) / radius;
 			return true;
 		}
 
