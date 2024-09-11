@@ -90,7 +90,7 @@ inline vec3& vec3::operator*=(const float t)
 
 inline vec3& vec3::operator/=(const float t)
 {
-	float k = 1 / k;
+	float k = 1 / t;
 	e[0] *= k;
 	e[1] *= k;
 	e[2] *= k;
@@ -136,6 +136,13 @@ inline vec3 operator*(float t, const vec3& a)
 {
 	vec3 newVec3(a);
 	newVec3 *= t;
+	return newVec3;
+}
+
+inline vec3 operator/(const vec3& a, float t)
+{
+	vec3 newVec3(a);
+	newVec3 /= t;
 	return newVec3;
 }
 
