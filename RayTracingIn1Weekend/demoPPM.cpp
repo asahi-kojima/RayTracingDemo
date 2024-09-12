@@ -40,7 +40,7 @@ int main()
 
 	hitable *sphereList[5 + 200]=
 	{
-		new Sphere(vec3(0, 0, -1.0), 0.5f, new Lambertian(vec3(0.1f, 0.2, 0.5f))),
+		new Sphere(vec3(0, 0, -1.0), 0.5f, new Metal(vec3(1.0f, 0.2, 0.5f))),
 		new Sphere(vec3(0, -300.5f, -1), 300, new Metal(vec3(0.8f, 0.8, 0.0f))),
 		new Sphere(vec3(1.5, 0, -1), 0.5, new Metal(vec3(1.0f, 0.8, 0.4f), 0.0f)),
 		new Sphere(vec3(-1.0, 0, -1), 0.5, new Dielectric(1.5)),
