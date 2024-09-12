@@ -4,7 +4,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <iostream>
-
+#include "util.h"
 
 class vec3
 {
@@ -124,6 +124,13 @@ inline vec3 operator-(const vec3& a, const vec3& b)
 	return newVec3;
 }
 
+inline vec3 operator*(const vec3& a, const vec3& b)
+{
+	vec3 newVec3(a);
+	newVec3 *= b;
+	return newVec3;
+}
+
 inline vec3 operator*(const vec3& a, float t)
 {
 	vec3 newVec3(a);
@@ -157,6 +164,23 @@ inline float dot(const vec3& a, const vec3& b)
 }
 
 
+
+
+inline vec3 randomInUnitSphere()
+{
+	vec3 p;
+	do
+	{
+		p = 2.0f * vec3(randomF64(), randomF64(), randomF64()) - vec3(1,1,1);
+	} while (p.squaredLength() >= 1.0f);
+	return p;
+}
+
+
+inline vec3 reflect(const vec3& v, const vec3& n)
+{
+	return v - 2 * dot(v, n) * n;
+}
 
 
 #endif __VEC3__

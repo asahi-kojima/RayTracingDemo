@@ -1,34 +1,24 @@
-#include <iostream>
-#include <random>
 #include "sphere.h"
 #include "camera.h"
-
-double randomF64()
-{
-	return rand() / (RAND_MAX + 1.0);
-}
-
-vec3 randomInUnitSphere()
-{
-	vec3 p;
-	do
-	{
-		p = 2.0f * vec3(randomF64(), randomF64(), randomF64()) - vec3(1,1,1);
-	} while (p.squaredLength() >= 1.0f);
-	return p;
-}
+#include "util.h"
+#include <omp.h>
 
 vec3 color(const ray &r, hitable *world, int depth)
 {
 	hitRecord rec;
-	if (depth <= 0)
-	{
-		return vec3(0, 0, 0);
-	}
 	if (world->hit(r, 0.001, MAXFLOAT, rec))
 	{
-		vec3 target = rec.p + rec.normal + randomInUnitSphere();
-		return 0.5f * color(ray(rec.p, target - rec.p), world, depth - 1);
+		ray scattered;
+		vec3 attenuation;
+
+		if (depth >= 0 && rec.pMaterial->scatter(r, rec, attenuation, scattered))
+		{
+			return attenuation * color(scattered, world, depth - 1);
+		}
+		else
+		{
+			return vec3(0, 0, 0);
+		}
 	}
 	else
 	{
@@ -40,39 +30,51 @@ vec3 color(const ray &r, hitable *world, int depth)
 
 int main()
 {
-	int nx = 1200;
-	int ny = 600;
-	int ns = 100;
+	int resolutionX = 6000;
+	int resolutionY = 4000;
+	int ns = 30;
 	std::cout << "P3\n"
-			  << nx << " " << ny << "\n255\n";
+			  << resolutionX << " " << resolutionY << "\n255\n";
 
 	Camera camera;
 
 	hitable *sphereList[]=
 	{
-		new Sphere(vec3(0, 0, -1), 0.5f),
-		new Sphere(vec3(0, -100.5f, -1), 100)
+		new Sphere(vec3(0, 0, -1.0), 0.5f, new Lambertian(vec3(0.1f, 0.2, 0.5f))),
+		new Sphere(vec3(0, -100.5f, -1), 100, new Lambertian(vec3(0.8f, 0.8, 0.0f))),
+		new Sphere(vec3(1.5, 0, -1), 0.5, new Metal(vec3(0.8f, 0.6, 0.2f), 0.3f)),
+		new Sphere(vec3(-1.0, 0, -1), 0.5, new Metal(vec3(0.8f, 0.8, 0.8f), 0.8f)),
+		new Sphere(vec3(0, 2, 1), 0.5, new Metal(vec3(1.0f, 1.0, 1.0f), 0.1f))
 	};
 	hitable *world = new HitableList(sphereList, sizeof(sphereList) / sizeof(sphereList[0]));
-	for (int j = ny - 1; j >= 0; j--) // 縦
+
+	vec3* resultColor = new vec3[resolutionX * resolutionY];
+	#pragma omp parallel for
+	for (int index = 0; index < (resolutionX * resolutionY); index++)
 	{
-		for (int i = 0; i < nx; i++) // 横
-		{
-			vec3 col(0, 0, 0);
+		int j = index / resolutionX;
+		int i = index % resolutionX;
+		vec3 col(0, 0, 0);
 			for (int s = 0; s < ns; s++)
 			{
-				float u = float(i + drand48()) / float(nx - 1);
-				float v = float(j + drand48()) / float(ny - 1);
+				float u = float(i + drand48()) / float(resolutionX - 1);
+				float v = float(j + drand48()) / float(resolutionY - 1);
 
 				ray r = camera.getRay(u,v);
-				col += color(r, world, 50);
+				col += color(r, world, 30);
 			}
 			col /= float(ns);
 			col = vec3(sqrt(col[0]),sqrt(col[1]), sqrt(col[2]));
-			int ir = int(255.99 * col[0]);
-			int ig = int(255.99 * col[1]);
-			int ib = int(255.99 * col[2]);
-			std::cout << ir << " " << ig << " " << ib << "\n";
+			resultColor[index].e[0] = int(255.99 * col[0]);
+			resultColor[index].e[1] = int(255.99 * col[1]);
+			resultColor[index].e[2] = int(255.99 * col[2]);
+	}
+	for (int j = resolutionY - 1; j >= 0; j--) // 縦
+	{
+		for (int i = 0; i < resolutionX; i++) // 横
+		{
+			const int index = j * resolutionX + i;
+			std::cout << resultColor[index].r() << " " << resultColor[index].g() << " " << resultColor[index].b() << "\n";
 		}
 	}
 }
