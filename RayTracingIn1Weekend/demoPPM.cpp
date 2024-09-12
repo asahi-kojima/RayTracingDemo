@@ -30,8 +30,8 @@ vec3 color(const ray &r, hitable *world, int depth)
 
 int main()
 {
-	int resolutionX = 6000;
-	int resolutionY = 4000;
+	int resolutionX = 600;
+	int resolutionY = 400;
 	int ns = 30;
 	std::cout << "P3\n"
 			  << resolutionX << " " << resolutionY << "\n255\n";
