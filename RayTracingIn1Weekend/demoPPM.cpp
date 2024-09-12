@@ -31,7 +31,7 @@ vec3 color(const ray &r, hitable *world, int depth)
 int main()
 {
 	int resolutionX = 600;
-	int resolutionY = 400;
+	int resolutionY = 300;
 	int ns = 30;
 	std::cout << "P3\n"
 			  << resolutionX << " " << resolutionY << "\n255\n";
@@ -41,9 +41,10 @@ int main()
 	hitable *sphereList[]=
 	{
 		new Sphere(vec3(0, 0, -1.0), 0.5f, new Lambertian(vec3(0.1f, 0.2, 0.5f))),
-		new Sphere(vec3(0, -100.5f, -1), 100, new Lambertian(vec3(0.8f, 0.8, 0.0f))),
-		new Sphere(vec3(1.5, 0, -1), 0.5, new Metal(vec3(0.8f, 0.6, 0.2f), 0.3f)),
-		new Sphere(vec3(-1.0, 0, -1), 0.5, new Metal(vec3(0.8f, 0.8, 0.8f), 0.8f)),
+		new Sphere(vec3(0, -100.5f, -1), 100, new Metal(vec3(0.8f, 0.8, 0.0f))),
+		new Sphere(vec3(1.5, 0, -1), 0.5, new Metal(vec3(0.8f, 0.6, 0.2f), 0.0f)),
+		new Sphere(vec3(-1.0, 0, -1), 0.5, new Dielectric(1.5)),
+		new Sphere(vec3(-1.0, 0, -1), -0.45, new Dielectric(1.5)),
 		new Sphere(vec3(0, 2, 1), 0.5, new Metal(vec3(1.0f, 1.0, 1.0f), 0.1f))
 	};
 	hitable *world = new HitableList(sphereList, sizeof(sphereList) / sizeof(sphereList[0]));
