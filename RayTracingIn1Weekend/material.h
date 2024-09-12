@@ -7,17 +7,15 @@
 class Material
 {
 public:
-	virtual bool scatter(const ray& rayIn, const hitRecord& rec, vec3& attenuation, ray& scattered) const = 0;
+	virtual bool scatter(const ray &rayIn, const hitRecord &rec, vec3 &attenuation, ray &scattered) const = 0;
 };
-
-
 
 class Lambertian : public Material
 {
 public:
-	Lambertian(const vec3& a) : albedo(a){}
+	Lambertian(const vec3 &a) : albedo(a) {}
 
-	virtual bool scatter(const ray& rayIn, const hitRecord& rec, vec3& attenuation, ray& scattered) const
+	virtual bool scatter(const ray &rayIn, const hitRecord &rec, vec3 &attenuation, ray &scattered) const
 	{
 		vec3 target = rec.p + rec.normal + randomInUnitSphere();
 		scattered = ray(rec.p, target - rec.p);
@@ -31,27 +29,26 @@ public:
 class Metal : public Material
 {
 public:
-	Metal(const vec3& a, float f = 0) : albedo(a) , fuzz(f < 1 ? f : 1){}
+	Metal(const vec3 &a, float f = 0) : albedo(a), fuzz(f < 1 ? f : 1) {}
 
-	virtual bool scatter(const ray& rayIn, const hitRecord& rec, vec3& attenuation, ray& scattered) const
+	virtual bool scatter(const ray &rayIn, const hitRecord &rec, vec3 &attenuation, ray &scattered) const
 	{
 		vec3 reflected = reflect(normalize(rayIn.direction()), rec.normal);
 		scattered = ray(rec.p, reflected + fuzz * randomInUnitSphere());
 		attenuation = albedo;
-		return  (dot(scattered.direction(), rec.normal) > 0);
+		return (dot(scattered.direction(), rec.normal) > 0);
 	}
 
 	vec3 albedo;
 	float fuzz;
 };
 
-
 class Dielectric : public Material
 {
 public:
 	Dielectric(float ref) : refIdx(ref) {}
 
-	virtual bool scatter(const ray& rayIn, const hitRecord& rec, vec3& attenuation, ray& scattered) const
+	virtual bool scatter(const ray &rayIn, const hitRecord &rec, vec3 &attenuation, ray &scattered) const
 	{
 		vec3 outwardNormal;
 		vec3 reflected = reflect(rayIn.direction(), rec.normal);
@@ -61,15 +58,14 @@ public:
 		float cosine;
 		float reflectProb;
 
-
-		//内部から出てこようとしている時
+		// 内部から出てこようとしている時
 		if (dot(rayIn.direction(), rec.normal) > 0)
 		{
 			outwardNormal = rec.normal;
 			niOverNt = refIdx;
 			cosine = dot(rayIn.direction(), rec.normal) / rayIn.direction().length();
 		}
-		//外部から飛んできている時
+		// 外部から飛んできている時
 		else
 		{
 			outwardNormal = -rec.normal;
@@ -80,40 +76,39 @@ public:
 		if (isRefract(rayIn.direction(), outwardNormal, niOverNt, refracted))
 		{
 			reflectProb = schlick(cosine, refIdx);
+			if (randomF64() < reflectProb)
+			{
+				scattered = ray(rec.p, reflected);
+			}
+			else
+			{
+				scattered = ray(rec.p, refracted);
+			}
 		}
 		else
-		{
-			reflectProb = 1.0;
-		}
-
-		if (randomF64() < reflectProb)
 		{
 			scattered = ray(rec.p, reflected);
 		}
-		else
-		{
-			scattered = ray(rec.p, refracted);
-		}
+
 		return true;
 	}
 
-
-	inline static bool isRefract(const vec3& v, const vec3& n, float niOverNt, vec3& refracted)
+	inline static bool isRefract(const vec3 &v, const vec3 &n, float niOverNt, vec3 &refracted)
 	{
 		vec3 uv = normalize(v);
 		float dt = dot(uv, n);
 
-		//スネル則を解いてる。Dはcos^2Thetaに相当し、正なら解がある。
+		// スネル則を解いてる。Dはcos^2Thetaに相当し、正なら解がある。
 		float D = 1.0 - niOverNt * niOverNt * (1 - dt * dt);
 
-		//解がある場合。屈折光を算出する。
+		// 解がある場合。屈折光を算出する。
 		if (D > 0)
 		{
 			refracted = niOverNt * (uv - n * dt) + n * sqrt(D);
 			return true;
 		}
 
-		//全反射の場合
+		// 全反射の場合
 		return false;
 	}
 
@@ -127,7 +122,5 @@ public:
 	float refIdx;
 	vec3 albedo;
 };
-
-
 
 #endif __MATERIAL__

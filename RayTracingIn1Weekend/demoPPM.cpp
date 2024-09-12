@@ -30,23 +30,36 @@ vec3 color(const ray &r, hitable *world, int depth)
 
 int main()
 {
-	int resolutionX = 600;
-	int resolutionY = 300;
+	int resolutionX = 1200;
+	int resolutionY = 600;
 	int ns = 30;
 	std::cout << "P3\n"
 			  << resolutionX << " " << resolutionY << "\n255\n";
 
 	Camera camera;
 
-	hitable *sphereList[]=
+	hitable *sphereList[5 + 200]=
 	{
 		new Sphere(vec3(0, 0, -1.0), 0.5f, new Lambertian(vec3(0.1f, 0.2, 0.5f))),
-		new Sphere(vec3(0, -100.5f, -1), 100, new Metal(vec3(0.8f, 0.8, 0.0f))),
-		new Sphere(vec3(1.5, 0, -1), 0.5, new Metal(vec3(0.8f, 0.6, 0.2f), 0.0f)),
+		new Sphere(vec3(0, -300.5f, -1), 300, new Metal(vec3(0.8f, 0.8, 0.0f))),
+		new Sphere(vec3(1.5, 0, -1), 0.5, new Metal(vec3(1.0f, 0.8, 0.4f), 0.0f)),
 		new Sphere(vec3(-1.0, 0, -1), 0.5, new Dielectric(1.5)),
-		new Sphere(vec3(-1.0, 0, -1), -0.45, new Dielectric(1.5)),
-		new Sphere(vec3(0, 2, 1), 0.5, new Metal(vec3(1.0f, 1.0, 1.0f), 0.1f))
+		new Sphere(vec3(-1.0, 0, -1), -0.49, new Dielectric(1.5))
 	};
+
+	for (int i = 0; i < 200; i++)
+	{
+		float radius = 0.06f;
+		vec3 position = (2 * vec3(randomF64(),0.5,randomF64()) - 1.0f) * 3 + vec3(0, 0.0f, -3.0f) + vec3(0, -0.5 + radius,0);
+		if (i % 2 == 0)
+		{
+			sphereList[5 + i] = new Sphere(position, radius, new Lambertian(vec3(randomF64(), randomF64(), randomF64())));
+		}
+		else
+		{
+			sphereList[5 + i] = new Sphere(position, radius, new Metal(vec3(randomF64(), randomF64(), randomF64())));
+		}
+	}
 	hitable *world = new HitableList(sphereList, sizeof(sphereList) / sizeof(sphereList[0]));
 
 	vec3* resultColor = new vec3[resolutionX * resolutionY];

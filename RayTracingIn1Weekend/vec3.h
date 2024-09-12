@@ -124,6 +124,15 @@ inline vec3 operator-(const vec3& a, const vec3& b)
 	return newVec3;
 }
 
+inline vec3 operator-(const vec3& a, float t)
+{
+	vec3 newVec3(a);
+	newVec3.e[0] -= t;
+	newVec3.e[1] -= t;
+	newVec3.e[2] -= t;
+	return newVec3;
+}
+
 inline vec3 operator*(const vec3& a, const vec3& b)
 {
 	vec3 newVec3(a);
