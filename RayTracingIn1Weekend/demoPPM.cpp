@@ -30,65 +30,65 @@ vec3 color(const ray &r, hitable *world, int depth)
 
 int main()
 {
-	int resolutionX = 1200;
-	int resolutionY = 600;
+	constexpr int BaseResolution = 1000;
+	int resolutionX = 2 * BaseResolution;
+	int resolutionY = BaseResolution;
 	int ns = 30;
 	std::cout << "P3\n"
 			  << resolutionX << " " << resolutionY << "\n255\n";
 
 	Camera camera;
 
-	hitable *sphereList[5 + 200]=
-	{
-		new Sphere(vec3(0, 0, -1.0), 0.5f, new Metal(vec3(1.0f, 0.2, 0.5f))),
-		new Sphere(vec3(0, -300.5f, -1), 300, new Metal(vec3(0.8f, 0.8, 0.0f))),
-		new Sphere(vec3(1.5, 0, -1), 0.5, new Metal(vec3(1.0f, 0.8, 0.4f), 0.0f)),
-		new Sphere(vec3(-1.0, 0, -1), 0.5, new Dielectric(1.5)),
-		new Sphere(vec3(-1.0, 0, -1), -0.49, new Dielectric(1.5))
-	};
+	hitable *sphereList[] =
+		{
+			new Sphere(vec3(0, 0, -1.3), 0.5f, new Metal(vec3(0.1f, 0.2, 0.5f))),
+			new Sphere(vec3(0, -300.5f, -1), 300, new Metal(vec3(0.8f, 0.8, 0.0f))),
+			new Sphere(vec3(1.5, 0, -1), 0.5, new Metal(vec3(1.0f, 0.8, 0.4f), 0.0f)),
+			new Sphere(vec3(-1.5, 0, -2), 0.5, new Metal(vec3(1.0f, 0.3, 0.0f), 0.0f)),
+			new Sphere(vec3(-1.0, 0, -1), 0.50, new Dielectric(1.2)),
+			new Sphere(vec3(-1.0, 0, -1), 0.45, new Dielectric(1.2)),
+			new Sphere(vec3(-1.0, 0, -1), 0.40, new Dielectric(1.2)),
+			new Sphere(vec3(-1.0, 0, -1), 0.35, new Dielectric(1.2)),
+			new Sphere(vec3(-1.0, 0, -1), 0.30, new Dielectric(1.2)),
+			new Sphere(vec3(-1.0, 0, -1), 0.25, new Dielectric(1.2)),
+			new Sphere(vec3(-1.0, 0, -1), 0.20, new Dielectric(1.2)),
+			new Sphere(vec3(-1.0, 0, -1), 0.15, new Dielectric(1.2)),
+			new Sphere(vec3(-1.0, 0, -1), 0.20, new Dielectric(1.2)),
+			new Sphere(vec3(-1.0, 0, -1), 0.15, new Dielectric(1.2)),
+			new Sphere(vec3(-1.0, 0, -1), 0.10, new Dielectric(1.2)),
+			new Sphere(vec3(-1.0, 0, -1), 0.05, new Dielectric(1.2))};
 
-	for (int i = 0; i < 200; i++)
-	{
-		float radius = 0.06f;
-		vec3 position = (2 * vec3(randomF64(),0.5,randomF64()) - 1.0f) * 3 + vec3(0, 0.0f, -3.0f) + vec3(0, -0.5 + radius,0);
-		if (i % 2 == 0)
-		{
-			sphereList[5 + i] = new Sphere(position, radius, new Lambertian(vec3(randomF64(), randomF64(), randomF64())));
-		}
-		else
-		{
-			sphereList[5 + i] = new Sphere(position, radius, new Metal(vec3(randomF64(), randomF64(), randomF64())));
-		}
-	}
 	hitable *world = new HitableList(sphereList, sizeof(sphereList) / sizeof(sphereList[0]));
 
-	vec3* resultColor = new vec3[resolutionX * resolutionY];
-	#pragma omp parallel for
+	vec3 *resultColor = new vec3[resolutionX * resolutionY * ns];
+#pragma omp parallel for
+	for (int index = 0; index < (resolutionX * resolutionY * ns); index++)
+	{
+		int s = index % ns;
+		int j = (index / ns) / resolutionX;
+		int i = (index / ns) % resolutionX;
+
+		float u = (float(i) + (2 * drand48() - 1) * 0.5) / float(resolutionX - 1);
+		float v = (float(j) + (2 * drand48() - 1) * 0.5) / float(resolutionY - 1);
+
+		ray r = camera.getRay(u, v);
+		resultColor[index] = color(r, world, 30);
+	}
+
 	for (int index = 0; index < (resolutionX * resolutionY); index++)
 	{
-		int j = index / resolutionX;
+		int j = resolutionY - 1 - (index / resolutionX);
 		int i = index % resolutionX;
 		vec3 col(0, 0, 0);
-			for (int s = 0; s < ns; s++)
-			{
-				float u = float(i + drand48()) / float(resolutionX - 1);
-				float v = float(j + drand48()) / float(resolutionY - 1);
-
-				ray r = camera.getRay(u,v);
-				col += color(r, world, 30);
-			}
-			col /= float(ns);
-			col = vec3(sqrt(col[0]),sqrt(col[1]), sqrt(col[2]));
-			resultColor[index].e[0] = int(255.99 * col[0]);
-			resultColor[index].e[1] = int(255.99 * col[1]);
-			resultColor[index].e[2] = int(255.99 * col[2]);
-	}
-	for (int j = resolutionY - 1; j >= 0; j--) // 縦
-	{
-		for (int i = 0; i < resolutionX; i++) // 横
+		for (int s = 0; s < ns; s++)
 		{
-			const int index = j * resolutionX + i;
-			std::cout << resultColor[index].r() << " " << resultColor[index].g() << " " << resultColor[index].b() << "\n";
+			col += resultColor[(j * resolutionX + i) * ns + s];
 		}
+		col /= ns;
+		col = vec3(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
+		col.e[0] = int(255.99 * col[0]);
+		col.e[1] = int(255.99 * col[1]);
+		col.e[2] = int(255.99 * col[2]);
+		std::cout << col.r() << " " << col.g() << " " << col.b() << "\n";
 	}
 }

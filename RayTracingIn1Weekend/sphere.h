@@ -8,19 +8,16 @@ class Sphere : public hitable
 {
 public:
 	Sphere() = default;
-	Sphere(const  vec3& cen, float r, Material* pMaterial): center(cen), radius(r), pMaterial(pMaterial){}
+	Sphere(const vec3 &cen, float r, Material *pMaterial) : center(cen), radius(r), pMaterial(pMaterial) {}
 
-	virtual bool hit(const ray& r, float t_min, float t_max, hitRecord& rec) const;
+	virtual bool hit(const ray &r, float t_min, float t_max, hitRecord &rec) const;
 
 	vec3 center;
 	float radius;
-	Material* pMaterial;
+	Material *pMaterial;
 };
 
-
-
-
-bool Sphere::hit(const ray& r, float t_min, float t_max, hitRecord& rec) const
+bool Sphere::hit(const ray &r, float t_min, float t_max, hitRecord &rec) const
 {
 	vec3 oc = r.origin() - center;
 	float a = dot(r.direction(), r.direction());
@@ -30,30 +27,44 @@ bool Sphere::hit(const ray& r, float t_min, float t_max, hitRecord& rec) const
 
 	if (D > 0)
 	{
-		float tmp = (-b -sqrt(D)) / (2.0 * a);
-		if (tmp < t_max && tmp > t_min)
+		//解が正負
+		if (c < 0)
 		{
-			rec.t = tmp;
-			rec.p = r.pointAt(tmp);
-			rec.normal = (rec.p - center) / radius;
-			rec.pMaterial = pMaterial;
-			return true;
-		}
+			float tmp = (-b + sqrt(D)) / (2.0 * a);
+			if (tmp < t_max && tmp > t_min)
+			{
+				rec.t = tmp;
+				rec.p = r.pointAt(tmp);
+				rec.normal = (rec.p - center) / radius;
+				rec.pMaterial = pMaterial;
+				return true;
+			}
 
-		tmp = (-b +sqrt(D)) / (2.0 * a);
-		if (tmp < t_max && tmp > t_min)
+			tmp = (-b - sqrt(D)) / (2.0 * a);
+			if (tmp < t_max && tmp > t_min)
+			{
+				rec.t = tmp;
+				rec.p = r.pointAt(tmp);
+				rec.normal = (rec.p - center) / radius;
+				rec.pMaterial = pMaterial;
+				return true;
+			}
+		}
+		else
 		{
-			rec.t = tmp;
-			rec.p = r.pointAt(tmp);
-			rec.normal = (rec.p - center) / radius;
-			rec.pMaterial = pMaterial;
-			return true;
+			float tmp = (-b - sqrt(D)) / (2.0 * a);
+			if (tmp < t_max && tmp > t_min)
+			{
+				rec.t = tmp;
+				rec.p = r.pointAt(tmp);
+				rec.normal = (rec.p - center) / radius;
+				rec.pMaterial = pMaterial;
+				return true;
+			}
 		}
 	}
 
 	return false;
 }
-
-
 
 #endif __SPHERE__
