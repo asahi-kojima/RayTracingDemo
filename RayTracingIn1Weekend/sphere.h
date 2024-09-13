@@ -39,8 +39,10 @@ bool Sphere::hit(const ray &r, float t_min, float t_max, hitRecord &rec) const
 				rec.pMaterial = pMaterial;
 				return true;
 			}
-
-			tmp = (-b - sqrt(D)) / (2.0 * a);
+		}
+		else
+		{
+			float tmp = (-b - sqrt(D)) / (2.0 * a);
 			if (tmp < t_max && tmp > t_min)
 			{
 				rec.t = tmp;
@@ -49,10 +51,8 @@ bool Sphere::hit(const ray &r, float t_min, float t_max, hitRecord &rec) const
 				rec.pMaterial = pMaterial;
 				return true;
 			}
-		}
-		else
-		{
-			float tmp = (-b - sqrt(D)) / (2.0 * a);
+
+			tmp = (-b + sqrt(D)) / (2.0 * a);
 			if (tmp < t_max && tmp > t_min)
 			{
 				rec.t = tmp;

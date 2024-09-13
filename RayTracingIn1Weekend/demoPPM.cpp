@@ -2,7 +2,7 @@
 #include "camera.h"
 #include "util.h"
 #include <omp.h>
-
+#include <atomic>
 vec3 color(const ray &r, hitable *world, int depth)
 {
 	hitRecord rec;
@@ -30,37 +30,74 @@ vec3 color(const ray &r, hitable *world, int depth)
 
 int main()
 {
-	constexpr int BaseResolution = 1000;
+	srand(static_cast<unsigned int>(time(NULL)));
+
+	constexpr int BaseResolution = 2000;
 	int resolutionX = 2 * BaseResolution;
 	int resolutionY = BaseResolution;
-	int ns = 30;
+	int ns = 50;
 	std::cout << "P3\n"
 			  << resolutionX << " " << resolutionY << "\n255\n";
 
-	Camera camera;
+	float zoom = 7;
+	Camera camera(vec3(3, 1, 2), vec3(0, 0, -1), vec3(0, 1, 0), 90, float(resolutionX) / float(resolutionY), zoom);
 
-	hitable *sphereList[] =
+	hitable *sphereListBase[] =
+	{
+		new Sphere(vec3(0, -300.5f, -1.0 - 0.3), 300, new Metal(vec3(0.8f, 0.8, 0.0f))),
+
+		new Sphere(vec3(1.3, 0, -0.8 - 0.3), 0.50, new Dielectric(2.0)),
+		new Sphere(vec3(1.3, 0, -0.8 - 0.3), -0.45, new Dielectric(2.0)),
+
+		new Sphere(vec3(0.0, 0, -1.0 - 0.3), 0.5f, new Metal(vec3(0.1f, 0.2, 0.5f))),
+
+		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.50, new Dielectric(1.2)),
+		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.45, new Dielectric(1.2)),
+		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.40, new Dielectric(1.2)),
+		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.35, new Dielectric(1.2)),
+		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.30, new Dielectric(1.2)),
+		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.25, new Dielectric(1.2)),
+		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.20, new Dielectric(1.2)),
+		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.15, new Dielectric(1.2)),
+		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.10, new Dielectric(1.2)),
+		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.05, new Dielectric(1.2)),
+
+		new Sphere(vec3(-2.6, 0, -1.4 - 0.3), 0.5, new Metal(vec3(1.0f, 0.3, 0.0f), 0.0f))
+	};
+
+	hitable* sphereList[200];
+	for (int i = 0 ; i < sizeof(sphereList) / sizeof(sphereList[0]); i++)
+	{
+		if(i < sizeof(sphereListBase) / sizeof(sphereListBase[0]))
 		{
-			new Sphere(vec3(0, 0, -1.3), 0.5f, new Metal(vec3(0.1f, 0.2, 0.5f))),
-			new Sphere(vec3(0, -300.5f, -1), 300, new Metal(vec3(0.8f, 0.8, 0.0f))),
-			new Sphere(vec3(1.5, 0, -1), 0.5, new Metal(vec3(1.0f, 0.8, 0.4f), 0.0f)),
-			new Sphere(vec3(-1.5, 0, -2), 0.5, new Metal(vec3(1.0f, 0.3, 0.0f), 0.0f)),
-			new Sphere(vec3(-1.0, 0, -1), 0.50, new Dielectric(1.2)),
-			new Sphere(vec3(-1.0, 0, -1), 0.45, new Dielectric(1.2)),
-			new Sphere(vec3(-1.0, 0, -1), 0.40, new Dielectric(1.2)),
-			new Sphere(vec3(-1.0, 0, -1), 0.35, new Dielectric(1.2)),
-			new Sphere(vec3(-1.0, 0, -1), 0.30, new Dielectric(1.2)),
-			new Sphere(vec3(-1.0, 0, -1), 0.25, new Dielectric(1.2)),
-			new Sphere(vec3(-1.0, 0, -1), 0.20, new Dielectric(1.2)),
-			new Sphere(vec3(-1.0, 0, -1), 0.15, new Dielectric(1.2)),
-			new Sphere(vec3(-1.0, 0, -1), 0.20, new Dielectric(1.2)),
-			new Sphere(vec3(-1.0, 0, -1), 0.15, new Dielectric(1.2)),
-			new Sphere(vec3(-1.0, 0, -1), 0.10, new Dielectric(1.2)),
-			new Sphere(vec3(-1.0, 0, -1), 0.05, new Dielectric(1.2))};
+			sphereList[i] = sphereListBase[i];
+		}
+		else
+		{
+			Material* pMaterial = nullptr;
+			if (i % 3 == 0)
+			{
+				pMaterial = new Metal(vec3(randomF64(), randomF64(), randomF64()));
+			}
+			else if (i % 3 == 1)
+			{
+				pMaterial = new Lambertian(vec3(randomF64(), randomF64(), randomF64()));
+			}
+			else
+			{
+				pMaterial = new Dielectric(1 + randomF64() * 2);
+			}
+			sphereList[i] = new Sphere(vec3(srandomF64(), 0, srandomF64()) * 5 - 1 + vec3(-3, 1 - 0.4, -2) ,0.1, pMaterial);
+		}
+	}
 
 	hitable *world = new HitableList(sphereList, sizeof(sphereList) / sizeof(sphereList[0]));
 
 	vec3 *resultColor = new vec3[resolutionX * resolutionY * ns];
+
+
+	std::atomic<int> progressCounter(0);
+
 #pragma omp parallel for
 	for (int index = 0; index < (resolutionX * resolutionY * ns); index++)
 	{
@@ -73,6 +110,12 @@ int main()
 
 		ray r = camera.getRay(u, v);
 		resultColor[index] = color(r, world, 30);
+
+		if (s == 0)
+		{
+			progressCounter+=1;
+			std::cerr << (float)progressCounter * 100 / (resolutionX * resolutionY) << std::endl;
+		}
 	}
 
 	for (int index = 0; index < (resolutionX * resolutionY); index++)

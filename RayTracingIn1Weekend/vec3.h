@@ -41,7 +41,7 @@ public:
 	float length() const {return sqrt(e[0]*e[0] + e[1]*e[1]+e[2]*e[2]);}
 	float squaredLength() const {return e[0]*e[0] + e[1]*e[1]+e[2]*e[2];}
 	void normalize();
-
+	vec3 cross(const vec3&) const;
 	float e[3];
 };
 
@@ -172,6 +172,17 @@ inline float dot(const vec3& a, const vec3& b)
 	return result;
 }
 
+inline vec3 vec3::cross(const vec3& b) const 
+{
+	const float* ae = this->e;
+	const float* be = b.e;
+	return vec3(
+		ae[1] * be[2] - ae[2] * be[1],
+		ae[2] * be[0] - ae[0] * be[2],
+		ae[0] * be[1] - ae[1] * be[0]
+	);
+}
+
 
 
 
@@ -189,6 +200,11 @@ inline vec3 randomInUnitSphere()
 inline vec3 reflect(const vec3& v, const vec3& n)
 {
 	return v - 2 * dot(v, n) * n;
+}
+
+inline vec3 cross(const vec3& a, const vec3& b)
+{
+	return a.cross(b);
 }
 
 
