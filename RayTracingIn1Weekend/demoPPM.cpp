@@ -35,59 +35,56 @@ int main()
 	constexpr int BaseResolution = 2000;
 	int resolutionX = 2 * BaseResolution;
 	int resolutionY = BaseResolution;
-	int ns = 50;
+	int ns = 20;
 	std::cout << "P3\n"
 			  << resolutionX << " " << resolutionY << "\n255\n";
 
 	float zoom = 7;
-	Camera camera(vec3(3, 1, 2), vec3(0, 0, -1), vec3(0, 1, 0), 90, float(resolutionX) / float(resolutionY), zoom);
+	Camera camera(vec3(3, 1, 2), vec3(0, 0, -1), vec3(0, 1, 0),90, float(resolutionX) / float(resolutionY), zoom);
 
 	hitable *sphereListBase[] =
 	{
-		new Sphere(vec3(0, -300.5f, -1.0 - 0.3), 300, new Metal(vec3(0.8f, 0.8, 0.0f))),
+		new Sphere(vec3(0, -300.5f, -1.0 - 0.3), 300, new Metal(vec3(1.0f, 1.0f, 1.0f) * 0.3f, 0.01)),
 
-		new Sphere(vec3(1.3, 0, -0.8 - 0.3), 0.50, new Dielectric(2.0)),
-		new Sphere(vec3(1.3, 0, -0.8 - 0.3), -0.45, new Dielectric(2.0)),
+		new Sphere(vec3(1.3, 0, -0.8 - 0.3), 0.50, new Metal(vec3(0.8f, 0.8, 0.8f), 0.9f)),
 
-		new Sphere(vec3(0.0, 0, -1.0 - 0.3), 0.5f, new Metal(vec3(0.1f, 0.2, 0.5f))),
+		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.5f, new Metal(vec3(0.1f, 0.2, 0.5f))),
 
-		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.50, new Dielectric(1.2)),
-		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.45, new Dielectric(1.2)),
-		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.40, new Dielectric(1.2)),
-		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.35, new Dielectric(1.2)),
-		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.30, new Dielectric(1.2)),
-		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.25, new Dielectric(1.2)),
-		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.20, new Dielectric(1.2)),
-		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.15, new Dielectric(1.2)),
-		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.10, new Dielectric(1.2)),
-		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.05, new Dielectric(1.2)),
+		new Sphere(vec3(0.0, 0, -1.0 - 0.3), 0.50, new Dielectric(1.8)),
+		new Sphere(vec3(0.0, 0, -1.0 - 0.3), 0.45, new Dielectric(1.8)),
+		new Sphere(vec3(0.0, 0, -1.0 - 0.3), 0.40, new Dielectric(1.8)),
+		new Sphere(vec3(0.0, 0, -1.0 - 0.3), 0.35, new Dielectric(1.8)),
+		new Sphere(vec3(0.0, 0, -1.0 - 0.3), 0.30, new Dielectric(1.8)),
+		new Sphere(vec3(0.0, 0, -1.0 - 0.3), 0.25, new Dielectric(1.8)),
+		new Sphere(vec3(0.0, 0, -1.0 - 0.3), 0.20, new Dielectric(1.8)),
+		new Sphere(vec3(0.0, 0, -1.0 - 0.3), 0.15, new Dielectric(1.8)),
+		new Sphere(vec3(0.0, 0, -1.0 - 0.3), 0.1, new Metal(vec3(0.8f, 0.5f, 1.0f) * 0.9f, 0.0)),
 
 		new Sphere(vec3(-2.6, 0, -1.4 - 0.3), 0.5, new Metal(vec3(1.0f, 0.3, 0.0f), 0.0f))
 	};
 
-	hitable* sphereList[200];
+	hitable* sphereList[300];
 	for (int i = 0 ; i < sizeof(sphereList) / sizeof(sphereList[0]); i++)
 	{
-		if(i < sizeof(sphereListBase) / sizeof(sphereListBase[0]))
+		if (i < sizeof(sphereListBase) / sizeof(sphereListBase[0]))
 		{
 			sphereList[i] = sphereListBase[i];
 		}
 		else
 		{
 			Material* pMaterial = nullptr;
-			if (i % 3 == 0)
+			if (i % 3 != 0)
 			{
-				pMaterial = new Metal(vec3(randomF64(), randomF64(), randomF64()));
-			}
-			else if (i % 3 == 1)
-			{
-				pMaterial = new Lambertian(vec3(randomF64(), randomF64(), randomF64()));
+					pMaterial = new Metal(vec3(randomF64(), randomF64(), randomF64()), 0);
+					
 			}
 			else
 			{
 				pMaterial = new Dielectric(1 + randomF64() * 2);
 			}
-			sphereList[i] = new Sphere(vec3(srandomF64(), 0, srandomF64()) * 5 - 1 + vec3(-3, 1 - 0.4, -2) ,0.1, pMaterial);
+
+			vec3 position = vec3(srandomF64(), 0, srandomF64()) * 4 - 1 + vec3(-3, 1 - 0.4, -2);
+			sphereList[i] = new Sphere(position ,0.1, pMaterial);
 		}
 	}
 
@@ -109,7 +106,7 @@ int main()
 		float v = (float(j) + (2 * drand48() - 1) * 0.5) / float(resolutionY - 1);
 
 		ray r = camera.getRay(u, v);
-		resultColor[index] = color(r, world, 30);
+		resultColor[index] = color(r, world, 100);
 
 		if (s == 0)
 		{

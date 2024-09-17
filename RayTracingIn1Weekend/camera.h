@@ -1,9 +1,21 @@
 #ifndef __CAMERA__
 #define __CAMERA__
 
-
 #include "util.h"
 #include "ray.h"
+
+
+vec3 randominUnitDisk()
+{
+	vec3 p;
+	do
+	{
+		p = 2.0 * vec3(randomF64(), randomF64(), 0) - vec3(1, 1, 0);
+	} while(dot(p, p) >= 1.0f);
+
+	return p;
+}
+
 
 class Camera
 {
@@ -28,9 +40,9 @@ public:
 		vertical		= vec3(0, 2 * halfHeight, 0);
 	}
 
-	Camera(vec3 lookFrom, vec3 lookAt, vec3 vUp, float vfov, float aspect, float zoom = 1)
+	Camera(vec3 lookFrom, vec3 lookAt, vec3 vUp, float vfov, float aspect, float zoom = 1, float aperture = 0, float focusDist = 1)
 	{
-		vec3 u, v, w;
+		lensRadius = aperture / 2;
 
 		float theta 		= vfov * M_PI / 180.0f;
 		float halfHeight 	= tan(theta / 2);
@@ -46,26 +58,13 @@ public:
 		vertical		= 2 * halfHeight * v;
 	}
 
-	Camera(vec3 origin, vec3 lowerLeftCorner, vec3 horizontal, vec3 vertical)
-	:origin(origin)
-	,lowerLeftCorner(lowerLeftCorner)
-	,horizontal(horizontal)
-	,vertical(vertical)
-	{
 
-	}
-
-	ray getRay(float u, float v)
+	ray getRay(float s, float t)
 	{
-		//if (isInRange(u, 0.0f, 1.0f) && isInRange(v, 0.0f, 1.0f))
-		{
-			return ray(origin, lowerLeftCorner + u * horizontal + v * vertical - origin);
-		}
-		//else
-		{
-			std::cout << "range error\n";
-			exit(1);
-		}
+		vec3 rd = lensRadius * randominUnitDisk();
+		vec3 offset = u * rd.x() + v * rd.y();
+		vec3 rayOrigin = origin + offset;
+		return ray(rayOrigin, lowerLeftCorner + s * horizontal + t * vertical - rayOrigin);
 	}
 
 
@@ -73,6 +72,8 @@ public:
 	vec3 lowerLeftCorner;
 	vec3 horizontal;
 	vec3 vertical;
+	vec3 u, v, w;
+ 	float lensRadius;
 };
 
 

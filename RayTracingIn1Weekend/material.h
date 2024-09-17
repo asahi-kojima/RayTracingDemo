@@ -123,4 +123,21 @@ public:
 	vec3 albedo;
 };
 
+
+
+class BlackBody : public Material
+{
+public:
+	BlackBody(){}
+
+	virtual bool scatter(const ray &rayIn, const hitRecord &rec, vec3 &attenuation, ray &scattered) const
+	{
+		vec3 reflected = reflect(normalize(rayIn.direction()), rec.normal);
+		scattered = ray(rec.p, reflected);
+		attenuation = vec3(0, 0, 0);
+		return (dot(scattered.direction(), rec.normal) > 0);
+	}
+
+};
+
 #endif __MATERIAL__
