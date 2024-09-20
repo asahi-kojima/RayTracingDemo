@@ -40,7 +40,7 @@ public:
 		vertical		= vec3(0, 2 * halfHeight, 0);
 	}
 
-	Camera(vec3 lookFrom, vec3 lookAt, vec3 vUp, float vfov, float aspect, float zoom = 1, float aperture = 0, float focusDist = 1)
+	Camera(vec3 lookFrom, vec3 lookAt, vec3 vUp, float vfov, float aspect, float aperture = 0, float focusDist = 1)
 	{
 		lensRadius = aperture / 2;
 
@@ -53,9 +53,9 @@ public:
 		u = normalize(cross(vUp, w));//x
 		v = cross(w, u);//y
 
-		lowerLeftCorner = origin - zoom * w - halfWidth * u - halfHeight * v;
-		horizontal 		= 2 * halfWidth * u;
-		vertical		= 2 * halfHeight * v;
+		lowerLeftCorner = origin - focusDist * w - focusDist * halfWidth * u - focusDist * halfHeight * v;
+		horizontal 		= focusDist * 2 * halfWidth * u;
+		vertical		= focusDist * 2 * halfHeight * v;
 	}
 
 

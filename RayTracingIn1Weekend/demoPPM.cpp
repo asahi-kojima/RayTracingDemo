@@ -32,63 +32,54 @@ int main()
 {
 	srand(static_cast<unsigned int>(time(NULL)));
 
-	constexpr int BaseResolution = 2000;
-	int resolutionX = 2 * BaseResolution;
-	int resolutionY = BaseResolution;
+	constexpr int BaseResolution = 2;
+	int resolutionX = 1920 * BaseResolution;
+	int resolutionY = 1080 * BaseResolution;
 	int ns = 20;
 	std::cout << "P3\n"
 			  << resolutionX << " " << resolutionY << "\n255\n";
 
-	float zoom = 7;
-	Camera camera(vec3(3, 1, 2), vec3(0, 0, -1), vec3(0, 1, 0),90, float(resolutionX) / float(resolutionY), zoom);
+	vec3 lookFrom(13, 2, 5);
+	vec3 lookAt(0, 0, 0);
+	Camera camera(lookFrom, lookAt, vec3(0, 1, 0),20, float(resolutionX) / float(resolutionY), 0.1, (lookFrom - lookAt).length());
 
-	hitable *sphereListBase[] =
+
+	int n = 500;
+	hitable** list = new hitable*[n + 1];
+	list[0] = new Sphere(vec3(0,-1000, 0), 1000, new Lambertian(vec3(0.5f, 0.5f, 0.5f)));
+	int i = 1;
+	for (int a = -11; a < 11; a++)
 	{
-		new Sphere(vec3(0, -300.5f, -1.0 - 0.3), 300, new Metal(vec3(1.0f, 1.0f, 1.0f) * 0.3f, 0.01)),
-
-		new Sphere(vec3(1.3, 0, -0.8 - 0.3), 0.50, new Metal(vec3(0.8f, 0.8, 0.8f), 0.9f)),
-
-		new Sphere(vec3(-1.3, 0, -1.2 - 0.3), 0.5f, new Metal(vec3(0.1f, 0.2, 0.5f))),
-
-		new Sphere(vec3(0.0, 0, -1.0 - 0.3), 0.50, new Dielectric(1.8)),
-		new Sphere(vec3(0.0, 0, -1.0 - 0.3), 0.45, new Dielectric(1.8)),
-		new Sphere(vec3(0.0, 0, -1.0 - 0.3), 0.40, new Dielectric(1.8)),
-		new Sphere(vec3(0.0, 0, -1.0 - 0.3), 0.35, new Dielectric(1.8)),
-		new Sphere(vec3(0.0, 0, -1.0 - 0.3), 0.30, new Dielectric(1.8)),
-		new Sphere(vec3(0.0, 0, -1.0 - 0.3), 0.25, new Dielectric(1.8)),
-		new Sphere(vec3(0.0, 0, -1.0 - 0.3), 0.20, new Dielectric(1.8)),
-		new Sphere(vec3(0.0, 0, -1.0 - 0.3), 0.15, new Dielectric(1.8)),
-		new Sphere(vec3(0.0, 0, -1.0 - 0.3), 0.1, new Metal(vec3(0.8f, 0.5f, 1.0f) * 0.9f, 0.0)),
-
-		new Sphere(vec3(-2.6, 0, -1.4 - 0.3), 0.5, new Metal(vec3(1.0f, 0.3, 0.0f), 0.0f))
-	};
-
-	hitable* sphereList[300];
-	for (int i = 0 ; i < sizeof(sphereList) / sizeof(sphereList[0]); i++)
-	{
-		if (i < sizeof(sphereListBase) / sizeof(sphereListBase[0]))
+		for (int b = -11; b < 11; b++)
 		{
-			sphereList[i] = sphereListBase[i];
-		}
-		else
-		{
-			Material* pMaterial = nullptr;
-			if (i % 3 != 0)
+			float chooseMat = drand48();
+			vec3 center(a + 0.9f * drand48(), 0.2, b + 0.9 * drand48());
+			if ((center - vec3(4, 0.2f, 0)).length() > 0.9f)
 			{
-					pMaterial = new Metal(vec3(randomF64(), randomF64(), randomF64()), 0);
-					
+				if (chooseMat < -0.8f)
+				{
+					list[i++] = new Sphere(center, 0.2, new Lambertian(vec3(drand48() * drand48(), drand48() * drand48(), drand48() * drand48())));
+				}
+				else if (chooseMat < 0.95)
+				{
+					list[i++] = new Sphere(center, 0.2, new Metal(vec3(drand48() * drand48(), drand48() * drand48(), drand48() * drand48())));
+				}
+				else
+				{
+					list[i++] = new Sphere(center, 0.2f, new Dielectric(1.5f));
+				}
 			}
-			else
-			{
-				pMaterial = new Dielectric(1 + randomF64() * 2);
-			}
-
-			vec3 position = vec3(srandomF64(), 0, srandomF64()) * 4 - 1 + vec3(-3, 1 - 0.4, -2);
-			sphereList[i] = new Sphere(position ,0.1, pMaterial);
 		}
 	}
 
-	hitable *world = new HitableList(sphereList, sizeof(sphereList) / sizeof(sphereList[0]));
+	list[i++] = new Sphere(vec3(-12, 1, 0), 1.0f, new Metal(vec3(0.5, 0.8, 0.3) * 0.8f, 0.3f));
+	list[i++] = new Sphere(vec3(-8, 1, 0), 1.0f, new Metal(vec3(1, 1, 0.8) * 0.6f, 0.0f));
+	list[i++] = new Sphere(vec3(-4, 1, 0), 1.0f, new Metal(vec3(0, 0, 0.6), 0.0f));
+	list[i++] = new Sphere(vec3(0, 1, 0), 1.0f, new Metal(vec3(1, 1, 1) , 0.0f));
+	list[i++] = new Sphere(vec3(4, 1, 0), 1.0f, new Dielectric(1.5f)); list[i++] = new Sphere(vec3(4, 1, 0), -0.9f, new Dielectric(1.5f));
+	list[i++] = new Sphere(vec3(8, 1, 0), 1.0f, new Metal(vec3(0, 1, 0.9) * 0.8f, 0.0f));
+
+	hitable *world = new HitableList(list, i);
 
 	vec3 *resultColor = new vec3[resolutionX * resolutionY * ns];
 
@@ -106,7 +97,7 @@ int main()
 		float v = (float(j) + (2 * drand48() - 1) * 0.5) / float(resolutionY - 1);
 
 		ray r = camera.getRay(u, v);
-		resultColor[index] = color(r, world, 100);
+		resultColor[index] = color(r, world, 30);
 
 		if (s == 0)
 		{
